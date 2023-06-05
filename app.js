@@ -18,7 +18,8 @@ const connect = mongoose.connect(url);
 
 //setting up basic authentication
 function auth (req, res, next) {
-  console.log(req.headers);
+  if (!req.signedCookies.user) {
+    console.log(req.headers);
   var authHeader = req.headers.authorization;
   if (!authHeader) {
     var error = new Error('You are not authenticated');
@@ -31,6 +32,7 @@ function auth (req, res, next) {
   var user = auth[0]
   var pass = auth[1]
   if (user == 'admin' && pass == 'password') {
+    res.cookie('user', 'admin', {signed: true})
     next() //authorized
   } else {
     var error = new Error('You are not authenticated');
@@ -38,6 +40,18 @@ function auth (req, res, next) {
     error.status = 401;
     next(error);
   }
+  } else {
+    if (req.signedCookies.user === 'admin') {
+      next();
+    }
+    else {
+      var error = new Error('You are not authenticated');
+      error.status = 401;
+      next(error);
+    }
+  }
+  
+  
 }
 connect.then((db) => {
   console.log("Connect to the server");
@@ -52,7 +66,7 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890'))
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(auth)
