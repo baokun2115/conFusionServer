@@ -17,6 +17,6 @@ app.use(bodyParser.json()); -> parse the JSON in the body
 
 # npm install express-session session-file-store -> install session
 
-# Install Passport for authenticatoin
+# Install Passport for authentication -> npm install passport passport-local passport-local-mongoose
 
-# npm install passport passport-local passport-local-mongoose
+# Install jwt token for authentication with passport -> npm install passport-jwt jsonwebtoken
