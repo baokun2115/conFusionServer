@@ -10,7 +10,7 @@ dishRouter.use(bodyParser.json());
 
 dishRouter
   .route("/")
-  .get((req, res, next) => {
+  .get(authenticate.verifyUser, (req, res, next) => {
     Dishes.find({})
       .then(
         (dishes) => {
@@ -182,7 +182,7 @@ dishRouter
   });
 dishRouter
   .route("/:dishId/comments/:commentId")
-  .get((req, res, next) => {
+  .get(authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {

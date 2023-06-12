@@ -23,13 +23,18 @@ otps.secretOrKey = config.secretKey;
 
 exports.jwtPassport = passport.use(
   new JwtStrategy(otps, (jwt_payload, done) => {
-    console.log("JWT payload: " + jwt_payload);
-    User.findOne({ _id: jwt_payload._id }, (err, user) => {
+    console.log("JWT payload: ", jwt_payload);
+    User.findOne({ _id: jwt_payload._id }).then((err, user) => {
       if (err) {
+        //if error
         return done(err, false);
       } else if (user) {
+        //if user is found
         return done(null, user);
-      } else return done(null, false);
+      } else {
+        //if user is not found
+        return done(null, false);
+      }
     });
   })
 );
