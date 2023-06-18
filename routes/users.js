@@ -10,13 +10,22 @@ var User = require("../models/users");
 router.use(bodyParser.json());
 
 /* GET users listing. */
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
+router.get("/", authenticate.verifyAdmin, (req, res, next) => {
+  User.find({})
+    .then(
+      (users) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(users);
+      },
+      (err) => next(err)
+    )
+    .catch((e) => next(e));
 });
 
 router.post("/signup", (req, res, next) => {
   User.register(
-    new User({ username: req.body.username }),
+    new User({ username: req.body.username, admin: req.body.admin }),
     req.body.password,
     (err, user) => {
       if (err) {
@@ -48,20 +57,10 @@ router.post("/login", passport.authenticate("local"), (req, res, next) => {
   res.json({
     success: true,
     token: token,
+    isAdmin: req.user.admin,
     status: "You are successfully logged in!",
   });
 });
-
-// router.post("/login", passport.authenticate("local"), (req, res, next) => {
-//   var token = authenticate.getToken({ _id: req.user._id });
-//   res.statusCode = 200;
-//   res.setHeader("Content-Type", "application/json");
-//   res.json({
-//     success: true,
-//     token: token,
-//     status: "You are successfully logged in!",
-//   });
-// });
 
 router.get("/logout", (req, res, next) => {
   if (req.session) {

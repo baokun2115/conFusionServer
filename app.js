@@ -9,6 +9,7 @@ var usersRouter = require("./routes/users");
 var dishRouter = require("./routes/dishRouter");
 var promoRouter = require("./routes/promoRouter");
 var leaderRouter = require("./routes/leaderRouter");
+var testRouter = require("./routes/testRouter");
 
 //Session start
 var session = require("express-session");
@@ -19,7 +20,6 @@ var app = express();
 const mongoose = require("mongoose");
 
 var passport = require("passport");
-var authenticate = require("./authenticate");
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url);
@@ -63,6 +63,7 @@ app.use("/users", usersRouter);
 app.use("/dishes", dishRouter);
 app.use("/promotions", promoRouter);
 app.use("/leaders", leaderRouter);
+app.use("/tests", testRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
