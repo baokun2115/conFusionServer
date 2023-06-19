@@ -235,6 +235,16 @@ dishRouter
   })
   //should we need to add cors.corsWithOptions?
   .put(authenticate.verifyUser, (req, res, next) => {
+    if (req.user._id.equals(req.body.author)) {
+      res.statusCode = 403;
+      res.end(
+        "PUT method is not allowed on /dishes/" +
+          req.params.dishId +
+          "/comments/" +
+          req.params.commentId
+      );
+      return;
+    }
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {
