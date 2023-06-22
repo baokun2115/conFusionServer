@@ -233,81 +233,63 @@ dishRouter
         req.params.commentId
     );
   })
-  //should we need to add cors.corsWithOptions?
   .put(authenticate.verifyUser, (req, res, next) => {
-    if (req.user._id.equals(req.body.author)) {
-      res.statusCode = 403;
-      res.end(
-        "PUT method is not allowed on /dishes/" +
-          req.params.dishId +
-          "/comments/" +
-          req.params.commentId
-      );
-      return;
-    }
-    Dishes.findById(req.params.dishId)
-      .then(
-        (dish) => {
-          if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            if (req.body.rating) {
-              dish.comments.id(req.params.commentId).rating = req.body.rating;
-            }
-            if (req.body.comment) {
-              dish.comments.id(req.params.commentId).comment = req.body.comment;
-            }
-            dish.save().then(
-              (dish) => {
-                Dishes.findById(dish._id)
-                  .populate("comments.author")
-                  .then((dish) => {
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(dish);
-                  });
-              },
-              (err) => next(err)
-            );
-          } else if (dish == null) {
-            err = new Error("Dish " + req.params.dishId + " not found");
-            err.status = 404;
-            return next(err);
-          } else {
-            err = new Error("Comment " + req.params.commentId + " not found");
-            err.status = 404;
-            return next(err);
-          }
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
+    const userId = req.user._id;
+    const commentId = req.params.commentId;
+    Dishes.findById(req.params.dishId).then((dish) => {
+      const authorId = dish.comments.id(commentId).author._id;
+      if (userId.equals(authorId)) {
+        Dishes.updateOne(
+          { _id: req.params.dishId, "comments._id": commentId },
+          {
+            $set: {
+              "comments.$.rating": req.body.rating,
+              "comments.$.comment": req.body.comment,
+            },
+          },
+          { new: true }
+        ).then(
+          (dish) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json("Comment updated successfully");
+            // res.json(dish.comments.id(commentId));
+          },
+          (err) => next(err)
+        );
+      } else {
+        err = new Error(
+          "You are not authorized to delete this comment: " +
+            req.params.commentId
+        );
+        err.statusCode = 403;
+        next(err);
+      }
+    });
   })
-  //shouuld we add cors.corsWithOptions,?
   .delete(authenticate.verifyUser, (req, res, next) => {
+    const userId = req.user._id;
+
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {
-          if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            dish.comments.id(req.params.commentId).remove();
-            dish.save().then(
+          const authorId = dish.comments.id(req.params.commentId).author._id;
+          if (userId.equals(authorId)) {
+            Dishes.findByIdAndDelete(req.params.dishId).then(
               (dish) => {
-                Dishes.findById(dish._id)
-                  .populate("comments.author")
-                  .then((dish) => {
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(dish);
-                  });
-              },
-              (err) => next(err)
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json(dish.comments.id(req.params.commentId));
+              }
+              // (err) => next(err)
             );
-          } else if (dish == null) {
-            err = new Error("Dish " + req.params.dishId + " not found");
-            err.status = 404;
-            return next(err);
           } else {
-            err = new Error("Comment " + req.params.commentId + " not found");
-            err.status = 404;
-            return next(err);
+            err = new Error(
+              "You are not authorized to delete this comment: " +
+                req.params.commentId
+            );
+            err.statusCode = 403;
+            next(err);
           }
         },
         (err) => next(err)
