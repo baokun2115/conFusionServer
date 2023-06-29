@@ -22,3 +22,5 @@ app.use(bodyParser.json()); -> parse the JSON in the body
 # Install jwt token for authentication with passport -> npm install passport-jwt jsonwebtoken
 
 # Install accept file uploading -> npm install multer
+
+# Use cors -> npm i cors
