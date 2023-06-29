@@ -24,3 +24,5 @@ app.use(bodyParser.json()); -> parse the JSON in the body
 # Install accept file uploading -> npm install multer
 
 # Use cors -> npm i cors
+
+# Install facebook token npm install passport-facebook-token
